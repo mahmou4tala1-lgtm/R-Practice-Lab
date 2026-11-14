@@ -563,6 +563,71 @@ code,kbd{font-family:var(--mono)}
   .top{gap:8px}
 }
 
+
+/* ---------- Responsive: phones, tablets, rotation ---------- */
+.iconbtn .sm{display:none}
+#app{height:100%}
+@supports (height:100dvh){#app{height:100dvh}}
+body{-webkit-text-size-adjust:100%;text-size-adjust:100%;overflow-wrap:break-word}
+img,video,svg{max-width:100%}
+.btn,.iconbtn,.exrow,.ccard{touch-action:manipulation}
+.right{min-height:clamp(460px,78dvh,760px)}
+@media(max-width:1100px) and (min-width:861px){#ex{--split:46%}.left .scroll{padding:22px 22px 24px}}
+@media(max-width:860px){
+  .right{min-height:clamp(460px,78dvh,760px)}
+  .left .scroll{padding:20px 20px 24px}
+  .cin input{font-size:16px}              /* iOS zooms into inputs smaller than 16px */
+  .hero .cta{min-width:0;width:100%}
+  .chap>button{padding:16px;gap:12px}
+}
+@media(max-width:640px){
+  .top{gap:6px;padding-block:6px;padding-left:max(10px,env(safe-area-inset-left,0px));padding-right:max(10px,env(safe-area-inset-right,0px))}
+  .top .crumb{display:none}
+  .iconbtn{height:36px;padding:0 10px;font-size:12.5px;gap:6px}
+  .iconbtn .lg{display:none}.iconbtn .sm{display:inline}
+  .hide-s{display:none}
+  .xp{font-size:12px;padding:5px 10px}
+  .wrap{padding-block:22px 48px}
+  .hero .wrap{padding-block:28px 32px;gap:22px}
+  .hero .stats{gap:16px 22px}
+  #catalog .cwrap{padding:28px max(16px,env(safe-area-inset-left,0px)) 48px}
+  .reslink{flex-wrap:wrap;padding:14px 16px;gap:12px}
+  .reslink .go{margin-left:52px;white-space:normal}
+  .chap>button{grid-template-columns:auto minmax(0,1fr)}
+  .chap .m{grid-column:2;text-align:left}
+  .exrow{padding:11px 10px}
+  .watch{padding:26px 16px}
+  .watch .wbtns{flex-direction:column;align-items:stretch}
+  .watch .btn.big{justify-content:center}
+  .left footer{padding:8px 12px}
+  .actbar{padding:10px 12px}
+  .actbar .hint{display:none}
+  .modal .row{flex-wrap:wrap}
+}
+@media(max-width:380px){
+  .top .mark{display:none}
+  .left h1{font-size:21px}
+  .left .scroll{padding:16px 14px 20px}
+  #ex.vid .left .scroll{padding-inline:14px}
+}
+/* short landscape phones: give the editor and console room, keep the top bar slim */
+@media(max-height:480px) and (orientation:landscape){
+  .top{min-height:44px;padding-block:4px}
+  .right{min-height:max(380px,100dvh)}
+  .iconbtn{height:32px}
+}
+
+
+/* Autocomplete on phones and tablets: a swipeable row of suggestions docked above the on-screen keyboard */
+@media (max-width:860px),(pointer:coarse){
+  .CodeMirror-hints{position:fixed!important;left:0!important;right:0!important;top:auto!important;bottom:var(--kb,0px)!important;width:auto!important;min-width:0!important;max-width:none!important;max-height:none!important;
+    margin:0;display:flex;flex-direction:row;align-items:center;gap:8px;overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch;overscroll-behavior-x:contain;
+    border:0;border-top:1px solid #ffffff2e;border-radius:0;padding:8px max(10px,env(safe-area-inset-left,0px)) calc(8px + env(safe-area-inset-bottom,0px));z-index:70;box-shadow:0 -8px 22px #0007;scrollbar-width:none}
+  .CodeMirror-hints::-webkit-scrollbar{display:none}
+  .CodeMirror-hint{flex:none;min-height:40px;padding:0 14px;border-radius:999px;background:#ffffff14;border:1px solid #ffffff22;font-size:14px;gap:10px;touch-action:manipulation}
+  li.CodeMirror-hint-active{background:var(--violet);border-color:var(--violet)}
+}
+
 /* Code font: never join characters such as <- into a single ligature arrow */
 code,kbd,pre,samp,.CodeMirror,.CodeMirror *,.cout,.cout *,.cin,.cin input,.sbox pre,.md pre,.md code{
   font-variant-ligatures:none!important;font-feature-settings:"liga" 0,"clig" 0,"calt" 0!important;font-kerning:none}
@@ -701,8 +766,8 @@ li.CodeMirror-hint-active .hint-tag{opacity:.85}
     <div class="crumb"><b id="tTitle">Introduction to R</b><span id="tSub">Course overview</span></div>
     <div class="sp"></div>
     <div class="xp" title="Total XP earned"><i></i><span id="xpTotal">0</span> XP</div>
-    <button class="iconbtn" id="btnCourses">All courses</button>
-    <button class="iconbtn" id="btnHome">Course home</button>
+    <button class="iconbtn" id="btnCourses"><span class="lg">All courses</span><span class="sm">Courses</span></button>
+    <button class="iconbtn" id="btnHome"><span class="lg">Course home</span><span class="sm">Home</span></button>
     <div class="pbar"><div id="pfill"></div></div>
   </header>
 
@@ -994,8 +1059,10 @@ $('console').addEventListener('click', e => {
 });
 
 /* ---------- editor ---------- */
+/* Touch devices: on-screen keyboards don't send the key events CodeMirror's auto-close addon relies on, so brackets and quotes are paired below instead */
+const TOUCH_KB = !!(window.matchMedia && window.matchMedia('(pointer:coarse)').matches);
 const cm = CodeMirror.fromTextArea($('editor'), {
-  mode: 'r', lineNumbers: true, hintOptions: { hint: rHint, completeSingle: false }, matchBrackets: true, autoCloseBrackets: true, styleActiveLine: true,
+  mode: 'r', lineNumbers: true, hintOptions: { hint: rHint, completeSingle: false }, matchBrackets: true, autoCloseBrackets: !TOUCH_KB, styleActiveLine: true,
   indentUnit: 2, tabSize: 2, indentWithTabs: false, lineWrapping: false,
   extraKeys: {
     Tab: c => c.replaceSelection('  ', 'end'),
@@ -1003,6 +1070,22 @@ const cm = CodeMirror.fromTextArea($('editor'), {
     'Ctrl-Enter': runLine, 'Cmd-Enter': runLine,
     'Shift-Ctrl-Enter': () => doRun(), 'Shift-Cmd-Enter': () => doRun()
   }
+});
+/* Keep the editor sized correctly when the window, orientation or split changes */
+let cmResizeT;
+const cmRefresh = () => { clearTimeout(cmResizeT); cmResizeT = setTimeout(() => cm.refresh(), 120); };
+window.addEventListener('resize', cmRefresh); window.addEventListener('orientationchange', cmRefresh);
+if (window.visualViewport) window.visualViewport.addEventListener('resize', cmRefresh);
+if (window.ResizeObserver) new ResizeObserver(cmRefresh).observe(cm.getWrapperElement().parentNode);
+
+/* Clicking in the empty space under the last line of code starts a new line there */
+cm.getWrapperElement().addEventListener('mousedown', e => {
+  if (e.button !== 0 || e.target.closest('.CodeMirror-vscrollbar, .CodeMirror-hscrollbar, .CodeMirror-gutters, .CodeMirror-hints')) return;
+  const last = cm.lastLine(), bottom = cm.charCoords({ line: last, ch: 0 }, 'window').bottom;
+  if (e.clientY <= bottom) return;   // click was on a line, let CodeMirror handle it
+  e.preventDefault();
+  if (cm.getLine(last).trim() !== '') cm.replaceRange('\n', { line: last, ch: cm.getLine(last).length });
+  cm.focus(); cm.setCursor({ line: cm.lastLine(), ch: cm.getLine(cm.lastLine()).length });
 });
 cm.on('change', () => { if (!COURSE || !flat[cur] || ['Lecture', 'MultipleChoice'].includes(curEx().type)) return; store.code[curEx().key] = cm.getValue(); saveSoon(); });
 
@@ -1077,12 +1160,51 @@ function rHint(cm, callback) {
 rHint.async = true;
 cm.on('inputRead', (c, ch) => {
   if (c.state.completionActive) return;
-  const t = ch.text[0]; if (!t || !/^[\w.$@]$/.test(t)) return;
+  const t = ch.text.join('\n'); if (!t || !/^[\w.$@]+$/.test(t)) return;   // phone keyboards often insert several characters (a whole word) at once
   const tt = c.getTokenTypeAt(c.getCursor()); if (tt && /comment|string/.test(tt)) return;
-  if (t === '$' || t === '@') { c.showHint({ hint: rHint, completeSingle: false }); return; }
+  if (/[$@]$/.test(t)) { c.showHint({ hint: rHint, completeSingle: false }); return; }
   const before = c.getLine(c.getCursor().line).slice(0, c.getCursor().ch);
   if (/[A-Za-z.][A-Za-z0-9._]*$/.test(before) && !/^\d/.test((/[\w.]+$/.exec(before) || [''])[0])) c.showHint({ hint: rHint, completeSingle: false });
 });
+
+/* Auto-close ( [ { " ' ` on touch keyboards: type ( and get (), type ) over an existing ) to step past it, backspace inside () removes both */
+if (TOUCH_KB) {
+  const PAIRS = { '(': ')', '[': ']', '{': '}', '"': '"', "'": "'", '`': '`' }, CLOSERS = new Set(Object.values(PAIRS));
+  const tokType = (c, pos) => c.getTokenTypeAt(pos) || '';
+  cm.on('inputRead', (c, ch) => {
+    if (ch.origin !== '+input' || ch.text.length !== 1 || !ch.text[0] || c.somethingSelected()) return;
+    if (/[()\[\]{}"'`]/.test(ch.text[0].slice(0, -1))) return;   // keyboards may insert a chunk such as "mean(": only its last character is considered
+    const typed = ch.text[0].slice(-1), cur = c.getCursor(), line = c.getLine(cur.line);
+    const prev = line.charAt(cur.ch - 2), next = line.charAt(cur.ch);          // chars around the one just typed
+    const tt = tokType(c, { line: cur.line, ch: cur.ch - 1 });
+    if (/comment/.test(tt)) return;
+    const isQuote = typed === '"' || typed === "'" || typed === '`';
+    if (CLOSERS.has(typed) && next === typed) {   // typed a closer right in front of the same closer: step over it instead of doubling it
+      c.replaceRange('', { line: cur.line, ch: cur.ch - 1 }, cur, '+input'); c.setCursor({ line: cur.line, ch: cur.ch }); return;
+    }
+    if (!(typed in PAIRS)) return;
+    if (isQuote ? /\w/.test(prev) : /string/.test(tt)) return;   // a quote right after a word is an apostrophe; brackets inside strings stay single
+    if (next && !/[\s)\]};,]/.test(next)) return;              // only auto-close in front of whitespace / a closer / end of line
+    c.replaceRange(PAIRS[typed], cur, cur, '+input'); c.setCursor(cur);
+  });
+  cm.on('beforeChange', (c, chg) => {
+    if (chg.origin !== '+delete' || chg.from.line !== chg.to.line || chg.to.ch - chg.from.ch !== 1) return;
+    const line = c.getLine(chg.from.line), o = line.charAt(chg.from.ch);
+    if (o in PAIRS && line.charAt(chg.to.ch) === PAIRS[o]) chg.update(chg.from, { line: chg.to.line, ch: chg.to.ch + 1 });
+  });
+}
+
+/* Phones: no auto-correct / auto-capitalise inside the editor, suggestions sit right above the on-screen keyboard */
+(() => {
+  const f = cm.getInputField(); f.setAttribute('autocorrect', 'off'); f.setAttribute('autocapitalize', 'off'); f.setAttribute('autocomplete', 'off'); f.setAttribute('spellcheck', 'false');
+  f.setAttribute('enterkeyhint', 'enter');
+  const root = document.documentElement, vv = window.visualViewport;
+  const kb = () => root.style.setProperty('--kb', (vv ? Math.max(0, Math.round(window.innerHeight - vv.height - vv.offsetTop)) : 0) + 'px');
+  kb(); window.addEventListener('resize', kb);
+  if (vv) { vv.addEventListener('resize', kb); vv.addEventListener('scroll', kb); }
+  const keepFocus = e => { if (e.target.closest && e.target.closest('.CodeMirror-hints')) e.preventDefault(); };
+  document.addEventListener('mousedown', keepFocus, true);
+})();
 
 let st; function saveSoon() { clearTimeout(st); st = setTimeout(save, 400); }
 async function runLine() {
@@ -1112,7 +1234,7 @@ function loadExercise(i, opts) {
   $('eEyebrow').textContent = 'Chapter ' + (f.c + 1) + ' · ' + (ex.type === 'Lecture' ? 'Lecture' : 'Exercise') + ' ' + (f.e + 1) + ' of ' + f.ch.exercises.length;
   $('eTitle').textContent = ex.title;
   $('ePill').textContent = ex.type === 'Lecture' ? (lectureNotes(ex) ? 'Lecture notes' : 'Lecture video') : ex.xp + ' XP' + (p.done ? ' · earned ' + p.xp : '');
-  $('eAssign').innerHTML = md(ex.type === 'Lecture' && lectureNotes(ex) ? NOTES_INTRO : ex.assignment);
+  $('eAssign').innerHTML = ex.type === 'Lecture' ? (lectureNotes(ex) ? md(NOTES_INTRO) : '') : md(ex.assignment);
   $('eInstrXp').textContent = ex.xp + ' XP';
   const ins = ex.instructions || '';
   const items = ins.split('\n').filter(l => /^\s*[-*]\s+/.test(l)).map(l => l.replace(/^\s*[-*]\s+/, ''));
